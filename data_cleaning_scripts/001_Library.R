@@ -25,11 +25,13 @@ library(ggplot2)
 #library(corrplot)
 #library(scales)
 library(tidyverse)
-#library(units)
+library(units)
 #library(stringi)
 #library(lwgeom)
-#library(measurements)
+library(measurements)
 library(miceadds)
+library(plotKML)
+library(tmaptools)
 
 
 #-- Conflicts ------------------------------------------ tidyverse_conflicts() --
@@ -59,8 +61,8 @@ source.all("functions/")
 
 #NPLAEA <-  CRS("+init=EPSG:3573")
 #AEA <- CRS("+proj=aea +lat_1=50 +lat_2=70 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")
-#LCC <- CRS("+proj=lcc +lat_1=50 +lat_2=70 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0")
-#WGS84 <- CRS("+init=EPSG:4326")
+LCC <- CRS("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs")
+WGS84 <- CRS("+init=EPSG:4326")
 NAD83 <- CRS("+init=EPSG:4269")
 
 
