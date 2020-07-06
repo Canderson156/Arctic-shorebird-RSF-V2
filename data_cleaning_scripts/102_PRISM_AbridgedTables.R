@@ -14,6 +14,7 @@
 bigdata <- bigdata_raw
 
 
+
 #changing variable classes 
 
 #Nas come from:
@@ -28,7 +29,7 @@ suppressWarnings(bigdata <- bigdata %>%
                                "Sighting_code", "Sub_region_code", "Count_Nests_found", 
                                "Count_Probable_nest", "Count_Pairs", "Count_Male", 
                                "Count_Female", "Count_Unknown_sex"), as.numeric) %>%
-                   mutate(Date = mdy(Date)))
+                   mutate(Date = dmy(Date)))
 
 
 

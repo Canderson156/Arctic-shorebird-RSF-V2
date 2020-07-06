@@ -285,7 +285,7 @@ rm(somerset_plotnames)
 
 
 #Combine the 36 seperate shapefiles into one huge shapefile with all of the GIS plots
-GIS_shapefiles <-  bind(shapefile_proj_list[[1]], shapefile_proj_list[[5]])
+GIS_shapefiles <-  bind(shapefile_proj_list[[1]], shapefile_proj_list[[2]])
 for(i in 3:length(shapefile_proj_list)){
   GIS_shapefiles <- bind(GIS_shapefiles, shapefile_proj_list[[i]])
 }

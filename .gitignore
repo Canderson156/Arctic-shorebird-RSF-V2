@@ -1,6 +1,9 @@
 data/
 
+
 exported/
-~*
-.Rproj.user*
+
+for_Isabel/
+*
 .Rproj.user
+

@@ -32,7 +32,7 @@ library(measurements)
 library(miceadds)
 library(plotKML)
 library(tmaptools)
-
+library(GGally)
 
 #-- Conflicts ------------------------------------------ tidyverse_conflicts() --
 # x lubridate::as.difftime() masks base::as.difftime()
@@ -45,6 +45,13 @@ library(tmaptools)
 # x dplyr::select()          masks raster::select()
 # x lubridate::setdiff()     masks base::setdiff()
 # x lubridate::union()       masks raster::union(), base::union()
+
+
+
+#### settings
+
+options(scipen=999) #disable scientific notation
+options(stringsAsFactors = FALSE) #disable strings as factors
 
 
 

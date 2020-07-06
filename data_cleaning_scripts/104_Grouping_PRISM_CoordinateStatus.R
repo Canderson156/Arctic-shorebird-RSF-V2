@@ -3,7 +3,6 @@
 
 
 
-bigdata <- readRDS("Robjects/bigdata.RDS")
 prism <- readRDS("Robjects/prism.RDS")
 allplots <- readRDS("Robjects/allplots.RDS")
 GIS_shapefiles<- readRDS("Robjects/GIS_shapefiles.RDS")

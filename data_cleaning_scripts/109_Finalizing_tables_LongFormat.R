@@ -215,7 +215,7 @@ all_UTM <- merge(all_points_utm, all_polygons_utm, all = TRUE)
 
 all_coordsLONG <- merge(all_UTM, all_LL)
 
-write.csv(all_coordsLONG, "exported/all_coordsLONG.csv")
+write.csv(all_coordsLONG, "exported/all_coords/all_coordsLONG.csv")
 
 
 

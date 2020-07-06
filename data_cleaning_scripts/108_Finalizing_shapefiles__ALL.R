@@ -40,8 +40,8 @@ all_coords <-  rbind(all_points, all_polygons)
 #exporting
 #change the dates if any substantive chnages have been made
 
-st_write(all_polygons, "exported/all_coords_shapefiles/all_polygons_NAD83_2020_06_04.shp", append=FALSE)
-st_write(all_points, "exported/all_coords_shapefiles/all_points_NAD83_2020_06_04.shp", append=FALSE)
+st_write(all_polygons, "exported/all_coords/all_polygons_NAD83_2020_06_24.shp", append=FALSE)
+st_write(all_points, "exported/all_coords/all_points_NAD83_2020_06_24.shp", append=FALSE)
 saveRDS(all_coords, "Robjects/all_coords.RDS")
 saveRDS(all_points, "Robjects/all_points.RDS")
 saveRDS(all_polygons, "Robjects/all_polygons.RDS")
