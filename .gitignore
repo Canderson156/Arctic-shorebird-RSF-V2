@@ -4,6 +4,6 @@ data/
 exported/
 
 for_Isabel/
-*
-.Rproj.user
-
+.RData
+.Rhistory
+.Rproj.user/
