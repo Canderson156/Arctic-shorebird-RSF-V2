@@ -8,8 +8,23 @@ sb_year <- readRDS("Robjects/sb_year.RDS")
 
 
 
-#long version for making plots with ggplot
 
+
+#remove plots with inaqequate landcover data
+# removes 119 observations
+
+
+all_polygons_df <- all_polygons_df %>%
+  filter(`00_missing_data` < 0.05,
+         `13_ice_snow` < 0.05,
+         `14_shadow` < 0.05,
+         `15_water` < 1)
+
+
+
+
+
+#long version for making plots with ggplot
 
 
 all_plots <- merge(all_polygons_df, sb_year) %>%
@@ -18,34 +33,40 @@ all_plots <- merge(all_polygons_df, sb_year) %>%
 
 temps_only <- merge(all_polygons_df, sb_year) %>%
     select(-contains("lc_")) %>%
-    gather(key = "variable", value = "value", contains("temp"))
+    gather(key = "variable", value = "value", contains("temp")) %>%
+    mutate(variable = factor(variable, levels = c("temp_yr_min_june", "temp_30_min_june", "temp_30_min_july")))
 
 lc_only <- merge(all_polygons_df, sb_year) %>%
-  select(-contains("temp_")) %>%
-  gather(key = "variable", value = "value", contains("lc"))
+  select(-contains("temp_"), -contains("group")) %>%
+  gather(key = "variable", value = "value", `00_missing_data`:`15_water`)
 
 
-test <- lc_only %>%
-  filter(Species == "SESA", 
-         variable == "lc_nontussock_graminoid_3")
 
 
-ggplot(test, aes(x = value)) +
-  geom_histogram() +
-  ggtitle("SESA")
+
+
+
 
 
 ####Univariate: Predictors
 
+
 #temperature
+
+temp_labs <- c("annual_jun_min", "clim_jun_min", "clim_jul_min")
+names(temp_labs) <- c("temp_yr_min_june", "temp_30_min_june", "temp_30_min_july")
+
 ggplot(temps_only, aes(value)) +
   geom_density() +
-  facet_wrap(~variable, scales = "free")
+  facet_wrap(~variable, labeller = labeller(variable = temp_labs)) +
+  labs(x = "temperaure")
   
 #landcover
 ggplot(lc_only, aes(value)) +
   geom_density() +
-  facet_wrap(~variable, scales = "free")
+  facet_wrap(~variable, scales = "free") +
+  scale_y_sqrt() +
+  labs(x = "% cover")
 
 
 
@@ -56,13 +77,17 @@ ggplot(lc_only, aes(value)) +
   
 ggplot(all_plots[all_plots$max_birds >0,], aes(max_birds)) +
     geom_histogram(binwidth = 1) +
-    facet_wrap(~Species)
+    facet_wrap(~Species) +
+    labs(x = "n birds", y = "n plots")
   
   
   
 ggplot(all_plots[all_plots$max_birds >0,], aes(max_birds)) +
     geom_histogram(binwidth = 1) +
-    facet_wrap(~Species, scales = "free")
+    facet_wrap(~Species, scales = "free")  +
+    labs(x = "n birds", y = "n plots")
+
+
   ## can see a difference in the number counted depending if they're uniparental or not
   
 
@@ -76,8 +101,11 @@ prev <- all_plots %>%
   group_by(Species) %>%
   count(presence) %>%
   filter(presence == TRUE) %>%
-  mutate(prevalence = n/2913)
+  mutate(prevalence = n/2913) %>%
+  select(-presence) %>%
+  arrange(desc(prevalence))
 
+#write.csv(prev, "exported/prevalence.csv")
 
 
 #### Multivariate: Collinearity
@@ -111,10 +139,12 @@ temps_sp <- temps_only %>%
 gg_temps_sp <- function(data){
   title <- unique(data$Species)
 
+
   ggplot(data, aes(x = presence, y = value)) +
     geom_boxplot() +
-    facet_wrap(~variable) +
-    ggtitle(title)
+    facet_wrap(~variable, labeller = labeller(variable = temp_labs)) +
+    ggtitle(title) +
+    labs(y = "temperature")
 } 
 
 plots_temps_sp <- lapply(temps_sp, gg_temps_sp)
@@ -139,7 +169,9 @@ gg_lc_sp <- function(data){
   ggplot(data, aes(colour = presence, x = value)) +
     geom_density() +
     facet_wrap(~variable, scales = "free_y") +
-    ggtitle(title)
+    ggtitle(title) +
+    scale_y_sqrt() +
+    labs(x = "% cover")
 } 
 
 plots_lc0_sp <- lapply(lc_sp0, gg_lc_sp)
@@ -195,10 +227,12 @@ lc_var0 <- lc_only %>%
 gg_lc_var <- function(data){
   title <- unique(data$variable)
   
-  ggplot(data, aes(x = value, fill = presence)) +
-    geom_histogram(bins = 100) +
+  ggplot(data, aes(colour = presence, x = value)) +
+    geom_density() +
     facet_wrap(~Species, scales = "free_y") +
-    ggtitle(title)
+    ggtitle(title) +
+    scale_y_sqrt() +
+    labs(x = "% cover")
 } 
 
 plots_lc0_var <- lapply(lc_var0, gg_lc_var)

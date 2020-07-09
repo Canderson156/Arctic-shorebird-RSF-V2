@@ -33,6 +33,7 @@ library(miceadds)
 library(plotKML)
 library(tmaptools)
 library(GGally)
+library(knitr)
 
 #-- Conflicts ------------------------------------------ tidyverse_conflicts() --
 # x lubridate::as.difftime() masks base::as.difftime()

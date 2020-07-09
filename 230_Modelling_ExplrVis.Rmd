@@ -1,0 +1,315 @@
+---
+title: "Exploratory Visualizations"
+author: "Christine Anderson"
+date: "July 8, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r load data, include=FALSE}
+
+source("data_cleaning_scripts/001_Library.R")
+
+#this name doesn't make sense once you get to this point
+all_polygons_df <- readRDS("Robjects/all_polygons_df.RDS")
+
+sb_year <- readRDS("Robjects/sb_year.RDS")
+#sb_year_species <- readRDS("Robjects/sb_year_species.RDS")
+
+
+```
+
+
+
+```{r remove plots with inaqequate landcover data, include=FALSE}
+all_polygons_df <- all_polygons_df %>%
+  filter(`00_missing_data` < 0.05,
+         `13_ice_snow` < 0.05,
+         `14_shadow` < 0.05,
+         `15_water` < 1)
+
+```
+
+
+
+
+```{r long versions of data, include = FALSE}
+all_plots <- merge(all_polygons_df, sb_year) %>%
+  gather(key = "variable", value = "value", contains("temp"), contains("lc"))
+
+
+temps_only <- merge(all_polygons_df, sb_year) %>%
+    select(-contains("lc_")) %>%
+    gather(key = "variable", value = "value", contains("temp")) %>%
+    mutate(variable = factor(variable, levels = c("temp_yr_min_june", "temp_30_min_june", "temp_30_min_july")))
+
+lc_only <- merge(all_polygons_df, sb_year) %>%
+  select(-contains("temp_"), -contains("group")) %>%
+  gather(key = "variable", value = "value", `00_missing_data`:`15_water`)
+
+
+
+```
+
+
+Observed shorebird abundance 
+
+```{r shorebird abundance-free axis, echo=FALSE}
+
+ggplot(all_plots[all_plots$max_birds >0,], aes(max_birds)) +
+    geom_histogram(binwidth = 1) +
+    facet_wrap(~Species, scales = "free")  +
+    labs(x = "n birds", y = "n plots")
+
+
+```
+<br>
+<br>
+<br>
+<br>
+
+Species prevalence (% plots observed)
+
+```{r prevalence, echo=FALSE}
+
+prev <- all_plots %>%
+  select(Plot, Species, Year, presence) %>%
+  distinct() %>%
+  group_by(Species) %>%
+  count(presence) %>%
+  filter(presence == TRUE) %>%
+  mutate(prevalence = n/2913) %>%
+  select(-presence) %>%
+  arrange(desc(prevalence))
+
+prev
+
+```
+<br>
+<br>
+<br>
+<br>
+
+Sampled temperatures
+
+```{r sampled temp, echo=FALSE}
+
+temp_labs <- c("annual_jun_min", "clim_jun_min", "clim_jul_min")
+names(temp_labs) <- c("temp_yr_min_june", "temp_30_min_june", "temp_30_min_july")
+
+ggplot(temps_only, aes(value)) +
+  geom_density() +
+  facet_wrap(~variable, labeller = labeller(variable = temp_labs)) +
+  labs(x = "temperaure")
+
+```
+<br>
+<br>
+<br>
+<br>
+
+
+Colder than average
+
+```{r cold temp species, echo=FALSE}
+
+temps_sp <- temps_only %>%
+  filter(Species %in% c("BASA", "BBPL", "BBSA", "REKN", "REPH", "RUTU", "SAND", "WRSA")) %>%
+  group_by(Species) %>%
+  group_split()
+
+
+gg_temps_sp <- function(data){
+  title <- unique(data$Species)
+
+
+  ggplot(data, aes(x = presence, y = value)) +
+    geom_boxplot() +
+    facet_wrap(~variable, labeller = labeller(variable = temp_labs)) +
+    ggtitle(title) +
+    labs(y = "temperature")
+} 
+
+plots_temps_sp <- lapply(temps_sp, gg_temps_sp)
+
+plots_temps_sp
+
+```
+<br>
+<br>
+<br>
+<br>
+
+Average
+
+```{r avg temp species, echo=FALSE}
+temps_sp <- temps_only %>%
+  filter(Species %in% c("AMGP", "DUNL", "PESA", "SESA")) %>%
+  group_by(Species) %>%
+  group_split()
+
+
+gg_temps_sp <- function(data){
+  title <- unique(data$Species)
+
+
+  ggplot(data, aes(x = presence, y = value)) +
+    geom_boxplot() +
+    facet_wrap(~variable, labeller = labeller(variable = temp_labs)) +
+    ggtitle(title) +
+    labs(y = "temperature")
+} 
+
+plots_temps_sp <- lapply(temps_sp, gg_temps_sp)
+
+plots_temps_sp
+
+```
+<br>
+<br>
+<br>
+<br>
+
+Warmer than Average
+
+```{r warm temp species, echo=FALSE}
+temps_sp <- temps_only %>%
+  filter(Species %in% c("HUGO", "LBDO", "LESA", "RNPH", "SEPL", "STSA", "WHIM", "WISN")) %>%
+  group_by(Species) %>%
+  group_split()
+
+
+gg_temps_sp <- function(data){
+  title <- unique(data$Species)
+
+
+  ggplot(data, aes(x = presence, y = value)) +
+    geom_boxplot() +
+    facet_wrap(~variable, labeller = labeller(variable = temp_labs)) +
+    ggtitle(title) +
+    labs(y = "temperature")
+} 
+
+plots_temps_sp <- lapply(temps_sp, gg_temps_sp)
+
+plots_temps_sp
+
+```
+<br>
+<br>
+<br>
+<br>
+
+Sampled Landcover
+
+```{r sampled landcover, echo=FALSE}
+
+ggplot(lc_only, aes(value)) +
+  geom_density() +
+  facet_wrap(~variable, scales = "free") +
+  scale_y_sqrt() +
+  labs(x = "% cover")
+
+```
+<br>
+<br>
+<br>
+<br>
+
+
+
+Landcover use by species
+
+```{r landcover species, echo=FALSE}
+
+gg_lc_sp <- function(data){
+  title <- unique(data$Species)
+  
+  ggplot(data, aes(colour = presence, x = value)) +
+    geom_density() +
+    facet_wrap(~variable, scales = "free_y") +
+    ggtitle(title) +
+    scale_y_sqrt() +
+    labs(x = "% cover")
+} 
+
+
+#excluding zeros
+lc_sp1 <- lc_only %>%
+  filter(value != 0) %>%
+  group_by(Species) %>%
+  group_split()
+
+
+plots_lc1_sp <- lapply(lc_sp1, gg_lc_sp)
+
+plots_lc1_sp 
+
+```
+<br>
+<br>
+<br>
+<br>
+
+
+
+Landcover use by habitat
+
+```{r landcover habitat, echo=FALSE}
+gg_lc_var <- function(data){
+  title <- unique(data$variable)
+  
+  ggplot(data, aes(colour = presence, x = value)) +
+    geom_density() +
+    facet_wrap(~Species, scales = "free_y") +
+    ggtitle(title) +
+    scale_y_sqrt() +
+    labs(x = "% cover")
+} 
+
+
+#excluding zeros
+lc_var1 <- lc_only %>%
+  filter(value != 0) %>%
+  group_by(variable) %>%
+  group_split()
+
+
+plots_lc1_var <- lapply(lc_var1, gg_lc_var)
+
+plots_lc1_var
+
+```
+<br>
+<br>
+<br>
+<br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

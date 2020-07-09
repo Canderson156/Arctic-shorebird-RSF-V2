@@ -15,7 +15,16 @@ bb_wgs <- readRDS("Robjects/bb_wgs.RDS")
 temp_30_min_june <- raster("data/climate/WorldClim/raw_30_year_avg/wc2.1_30s_tmin_06.tif")
 temp_30_min_june <- crop(temp_30_min_june, bb_wgs)
 temp_30_min_june <- projectRaster(temp_30_min_june, crs = LCC)
-writeRaster(temp_30_min_june, "data/climate/WorldClim/temp_30_min_june_LCC.tif", format="GTiff", overwrite = TRUE)
+writeRaster(temp_30_min_june, "data/climate/WorldClim/temp_30_min_june.tif", format="GTiff", overwrite = TRUE)
+
+
+#July min temperature
+
+temp_30_min_july <- raster("data/climate/WorldClim/raw_30_year_avg/wc2.1_30s_tmin_07.tif")
+temp_30_min_july <- crop(temp_30_min_july, bb_wgs)
+temp_30_min_july <- projectRaster(temp_30_min_july, crs = LCC)
+writeRaster(temp_30_min_july, "data/climate/WorldClim/temp_30_min_july.tif", format="GTiff", overwrite = TRUE)
+
 
 
 

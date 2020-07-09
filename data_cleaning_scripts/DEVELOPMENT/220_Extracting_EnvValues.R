@@ -7,16 +7,23 @@
     #I had figured this out and now I don't recall the answer
 
 
+
+### Split this into 2 different scripts
+
+
+
 filelist1 <- list.files("data/climate/WorldClim/raw_1_year/LCC/June/", full.names = TRUE)
 temp_rasters <- stack(filelist1)
 
-temp_30_avg_june <- raster("data/climate/WorldClim/temp_30_avg_june_LCC.tif")
-temp_30_avg_july <- raster("data/climate/WorldClim/temp_30_avg_july_LCC.tif")
+temp_30_min_june <- raster("data/climate/WorldClim/temp_30_min_june.tif")
+temp_30_min_july <- raster("data/climate/WorldClim/temp_30_min_july.tif")
 landcover <- raster("data/landcover/Northern_Land_Cover_2000/landcover_mosaic_lcc.tif")
 
-all_polygons <- readRDS("Robjects/all_polygons.RDS")
+all_polygons_raw <- readRDS("Robjects/all_polygons.RDS")
+all_polygons <- all_polygons_raw
 included_surveys <- readRDS("Robjects/included_surveys.RDS")
 prism <- readRDS("Robjects/prism.RDS")
+
 
 
 ###TEMPERATURE
@@ -75,18 +82,9 @@ all_polygons_year <- lapply(all_polygons_year, st_as_sf)
 all_polygons_year <- lapply(all_polygons_year, setNames, nm = c("Plot", "Year", "temp_yr_min_june", "geometry"))
 
 #merge together
-all_polygons_year <- do.call("rbind", all_polygons_year) 
-
-### need to manually find the KWI data, as I did for the previous plots
+all_polygons2 <- do.call("rbind", all_polygons_year) 
 
 
-
-
-
-all_polygons <- all_polygons_year
-#merge with the version where missing values have been added manually
-#maybe chenage them to be added programmatically? 
-# Do I need to add anything to this version? apparently not, which is weird to me
 
 
 
@@ -94,38 +92,44 @@ all_polygons <- all_polygons_year
 
 
 ###extract 30 year temperatures
-all_polygons <- raster::extract(temp_30_avg_june, all_polygons, na.rm = TRUE, fun = mean, sp = TRUE)
-all_polygons <- raster::extract(temp_30_avg_july, all_polygons, na.rm = TRUE, fun = mean, sp = TRUE)
+all_polygons2 <- raster::extract(temp_30_min_june, all_polygons2, na.rm = TRUE, fun = mean, sp = TRUE)
+all_polygons2 <- raster::extract(temp_30_min_july, all_polygons2, na.rm = TRUE, fun = mean, sp = TRUE)
 
 
 
 #just a dataframe
-all_polygons_df <- all_polygons@data
-
-
-###fix missing data
-
-
-#import version where missing temp have been manually added
-fix_missing_temps <- read.csv("data/climate/WorldClim/fix_missing_temps.csv")
-
-
-all_polygons_df2 <- all_polygons_df %>%
-  filter(is.na(temp_30_avg_june)) %>%
-  select(-temp_30_avg_june, -temp_30_avg_july) %>%
-  merge(fix_missing_temps)
-
-
-all_polygons_df <- all_polygons_df %>%
-  filter(not.na(temp_30_avg_june)) %>%
-  merge(all_polygons_df2, all = TRUE)
+all_polygons_df <- all_polygons2@data
 
 
 
-#fix the missing annual temperature
+
+
+#fix the missing temperatures
 
 
 all_polygons_df$temp_yr_min_june[all_polygons_df$Plot == "KWI-1314B"] <- -0.8
+
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "IGL-0175D"] <- -1.6
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "MDE-0035A"] <- -0.3
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "RAS-0105"] <- -1.7
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "RAS-0109"] <- -1.7
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "SIR-0036A"] <- -2.5
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "SIR-0036C"] <- -2.5
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "SIR-0038A"] <- -2.9
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "SIR-0038D"] <- -2.8
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "MDW-0072B"] <- 3.8
+all_polygons_df$temp_30_min_june[all_polygons_df$Plot == "AFI-0024"] <- -0.9
+
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "IGL-0175D"] <- 3.8
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "MDE-0035A"] <- 4.7
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "RAS-0105"] <- 3.2
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "RAS-0109"] <- 3.2
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "SIR-0036A"] <- 1.7
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "SIR-0036C"] <- 1.8
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "SIR-0038A"] <- 1.8
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "SIR-0038D"] <- 1.2
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "MDW-0072B"] <- 8.3
+all_polygons_df$temp_30_min_july[all_polygons_df$Plot == "AFI-0024"] <- 3.5
 
 
 
@@ -146,8 +150,8 @@ all_polygons_df$temp_yr_min_june[all_polygons_df$Plot == "KWI-1314B"] <- -0.8
 
 
 #extract landcover
-plot_lc2 <- raster::extract(landcover, all_polygons, df = T, weights = T, normalizeWeights = T) 
-saveRDS(plot_lc2, "Robjects/plot_lc2.RDS")
+#plot_lc2 <- raster::extract(landcover, all_polygons, df = T, weights = T, normalizeWeights = T) 
+#saveRDS(plot_lc2, "Robjects/plot_lc2.RDS")
 plot_lc2 <- readRDS("Robjects/plot_lc2.RDS")
 
 
@@ -156,7 +160,10 @@ prop_lc <- plot_lc2 %>%
   dplyr::summarize(prop = sum(weight))
 
 
-names <- data.frame(Plot = all_polygons$Plot, ID = 1:length(all_polygons$Plot))
+names <- data.frame(Plot = all_polygons_raw$Plot, ID = 1:length(all_polygons_raw$Plot))
+
+n_unique(prop_lc$ID) == n_unique(names$Plot)
+
 
 prop_lc <- merge(prop_lc, names)
 
@@ -168,20 +175,20 @@ prop_lc <- prop_lc %>%
 
 landcover_classes <- data.frame(lc_code = 0:15,
                                 lc_class = c(
-                                  "00_missing data",
-                                  "01_tussock graminoid tundra",
-                                  "02_wet sedge",
-                                  "03_moist to dry non-tussock graminoid / dwarf shrub tundra",
-                                  "04_dry graminoid prostrate dwarf shrub tundra",
-                                  "05_low shrub",
-                                  "06_tall shrub",
-                                  "07_prostrate dwarf shrub",
-                                  "08_sparsely vegetated bedrock",
-                                  "09_sparsely vegetated till-colluvium",
-                                  "10_bare soil with cryptogam crust - frost boils",
+                                  "00_missing_data",
+                                  "01_tussock_graminoid",
+                                  "02_wet_sedge",
+                                  "03_nontussock_graminoid_dwarf_shrub",
+                                  "04_dry_graminoid_prostrate_dwarf_shrub_tundra",
+                                  "05_low_shrub",
+                                  "06_tall_shrub",
+                                  "07_prostrate_dwarf_shrub",
+                                  "08_sparsely_vegetated_bedrock",
+                                  "09_sparsely_vegetated_till",
+                                  "10_bare_soil_cryptogam_frost_boils",
                                   "11_wetlands",
                                   "12_barren",
-                                  "13_ice / snow",
+                                  "13_ice_snow",
                                   "14_shadow",
                                   "15_water"),
                                 lc_group = c(
@@ -193,12 +200,12 @@ landcover_classes <- data.frame(lc_code = 0:15,
                                   "shrub",
                                   "shrub",
                                   "shrub",
-                                  "sparsely vegetated",
-                                  "sparsely vegetated",
-                                  "sparsely vegetated",
+                                  "sparsely_vegetated",
+                                  "sparsely_vegetated",
+                                  "sparsely_vegetated",
                                   "wetland",
                                   "barren",
-                                  "ice / snow",
+                                  "ice_snow",
                                   "shadow",
                                   "water"))
 
@@ -229,10 +236,18 @@ group <- prop_lc %>%
 
 
 
-m <- merge(prop_lc_wide, group)
-
-
 all_polygons_df <- merge(all_polygons_df, prop_lc_wide, by = "Plot")
+all_polygons_df <- merge(all_polygons_df, group, by = "Plot")
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -248,10 +263,26 @@ saveRDS(all_polygons_df, "Robjects/all_polygons_df.RDS")
 #for editing temps
 
 #writeOGR(all_polygons, "all_polygons.shp", "all_polygons", driver="ESRI Shapefile")
-#writeRaster(temp_30_avg_june, "temp_30_avg_june.tif")
-#writeRaster(temp_30_avg_july, "temp_30_avg_july.tif")
+#writeRaster(temp_30_min_june, "data/climate/WorldClim/temp_30_min_june_LCC.tif")
+#writeRaster(temp_30_min_july, "data/climate/WorldClim/temp_30_min_july_LCC.tif")
 #write_csv(all_polygons_df, "exported/all_polygons_df_june26.csv")
 #write_csv(fix_missing_temps, "data/climate/WorldClim/fix_missing_temps.csv")
+
+
+
+
+#background values for predictor variables
+
+bckgrd_temp_30_min_june <- sampleRandom(temp_30_min_june, 10000)
+
+bckgrd_temp_30_min_july <- sampleRandom(temp_30_min_june, 10000)
+
+
+
+
+
+
+
 
 
 

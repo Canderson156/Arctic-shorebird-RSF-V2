@@ -1,0 +1,101 @@
+---
+title: "Exploratory Visualizations"
+author: "Christine Anderson"
+date: "July 8, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Exploratory Visualizations
+
+
+```{r load data, include=FALSE}
+
+#this name doesn't make sense once you get to this point
+all_polygons_df <- readRDS("Robjects/all_polygons_df.RDS")
+
+sb_year <- readRDS("Robjects/sb_year.RDS")
+#sb_year_species <- readRDS("Robjects/sb_year_species.RDS")
+
+
+```
+
+
+
+```{r remove plots with inaqequate landcover data, include=FALSE}
+all_polygons_df <- all_polygons_df %>%
+  filter(`00_missing_data` < 0.05,
+         `13_ice_snow` < 0.05,
+         `14_shadow` < 0.05,
+         `15_water` < 1)
+
+```
+
+
+
+
+```{r long versions of data, include = FALSE}
+all_plots <- merge(all_polygons_df, sb_year) %>%
+  gather(key = "variable", value = "value", contains("temp"), contains("lc"))
+
+
+temps_only <- merge(all_polygons_df, sb_year) %>%
+    select(-contains("lc_")) %>%
+    gather(key = "variable", value = "value", contains("temp")) %>%
+    mutate(variable = factor(variable, levels = c("temp_yr_min_june", "temp_30_min_june", "temp_30_min_july")))
+
+lc_only <- merge(all_polygons_df, sb_year) %>%
+  select(-contains("temp_"), -contains("group")) %>%
+  gather(key = "variable", value = "value", `00_missing_data`:`15_water`)
+
+
+
+```
+
+
+
+Observed shorebird abundance – fixed axis, for comparing species to one another
+
+```{r shorebird abundance-fixed axis, echo=FALSE}
+ggplot(all_plots[all_plots$max_birds >0,], aes(max_birds)) +
+    geom_histogram(binwidth = 1) +
+    facet_wrap(~Species) +
+    labs(x = "n birds", y = "n plots")
+  
+  
+```
+
+Observed shorebird abundance – free axis, for looking at the data for each species individually
+
+```{r shorebird abundance-free axis, echo=FALSE}
+
+ggplot(all_plots[all_plots$max_birds >0,], aes(max_birds)) +
+    geom_histogram(binwidth = 1) +
+    facet_wrap(~Species, scales = "free")  +
+    labs(x = "n birds", y = "n plots")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
